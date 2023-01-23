@@ -7,6 +7,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<IVPSApi, VPSApi>();
         services.AddHostedService<Worker>();
     })
+    .UseWindowsService()
     .Build();
 
 await host.RunAsync();
