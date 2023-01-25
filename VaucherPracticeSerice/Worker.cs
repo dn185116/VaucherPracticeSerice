@@ -20,6 +20,11 @@ namespace VaucherPracticeSerice
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            await ProcessTransactions(stoppingToken);
+        }
+
+        private async Task ProcessTransactions(CancellationToken stoppingToken)
+        {
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
@@ -29,101 +34,92 @@ namespace VaucherPracticeSerice
                     {
                         foreach (var transaction in getTransactions.Result)
                         {
-                            InDisplayConfirmationTO confirmationTO = new InDisplayConfirmationTO
+                            var useVoucher = await PromptCashier("Do you want to use vaucher code?", transaction.TransactionId);
+                            if (useVoucher)
                             {
-                                Request = new DisplayConfirmationRequest
+                                var voucherCode = await GetAlphaNumeric("Enter voucher code:", transaction.TransactionId, 2, 10);
+                                if (voucherCode.ToLower() == "c1")
                                 {
-                                    TransactionId = transaction.TransactionId,
-                                    Message = "With this voucher you got discount of 1$",
-                                    TimeoutSeconds = 60,
-                                }
-                            };
-
-                            InPromptCashierTO inPrompt = new InPromptCashierTO
-                            {
-                                Request = new PromptCashierRequest
-                                {
-                                    TransactionId = transaction.TransactionId,
-                                    Message = "Do you want to use vaucher code?",
-                                    ButtonTexts = new string[] { "Yes", "No" },
-                                    DefaultResult = "No",
-                                    TimeoutSeconds = 60
-
-                                }
-                            };
-
-                            InCompleteTransactionTO inComplete = new InCompleteTransactionTO
-                            {
-                                Request = new CompleteTransactionRequest
-                                {
-                                    TransactionId = transaction.TransactionId,
-                                    Approved = true,
-                                    ApprovalCode = "aHello",
-                                    ApprovedAmount = transaction.Amount,
-                                    ApprovedCashback = transaction.Cashback,
-                                    ApprovedTip = transaction.Tip,
-                                    ReferenceNumber = transaction.ReferenceNumber,
-                                    ErrorMessage = "errorMessage"
-                                }
-                            };
-
-                            var promptCashier = await _vpsApi.PromptCashier(inPrompt);
-
-                            if (promptCashier.Result.Result == "Yes")
-                            {
-                                InGetAlphaNumericTO inGetAlpha = new InGetAlphaNumericTO
-                                {
-                                    Request = new RequestGetAlphaNumeric
-                                    {
-                                        TransactionId = transaction.TransactionId,
-                                        Message = "Enter voucher code:",
-                                        MinLength = "2",
-                                        MaxLength = "10",
-                                        TimeoutSeconds = 60
-                                    }
-                                };
-                                var getetAlphaNumeric = await _vpsApi.GetAlphaNumeric(inGetAlpha);
-
-                                if (getetAlphaNumeric.Result.Result.ToLower() == "c1")
-                                {
-                                  
-                                   var displayMessage =  await _vpsApi.DisplayConfirmation(confirmationTO);
-
-                                    if (displayMessage)
-                                    {
-                                        await _vpsApi.CompleteTransaction(inComplete);
-                                    }
-                                    
+                                    await DisplayConfirmation("With this voucher you got discount of 1$", transaction.TransactionId);
+                                    await CompleteTransaction(transaction.TransactionId, true, "aHello", transaction.Amount, transaction.Cashback, transaction.Tip, transaction.ReferenceNumber, "errorMessage");
                                 }
                                 else
                                 {
-
-                                    confirmationTO.Request.Message = "invalid Voucher";
-                              
-                                    await _vpsApi.DisplayConfirmation(confirmationTO);
-
-                                    inComplete.Request.Approved = false;
-                                    inComplete.Request.ErrorMessage = "Invalid Transaction";
-
-                                    await _vpsApi.CompleteTransaction(inComplete);
+                                    await DisplayConfirmation("Invalid Voucher", transaction.TransactionId);
                                 }
                             }
-                            else
-                            {
-                                await _vpsApi.CompleteTransaction(inComplete);
-                            }
-
                         }
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-
-                    throw;
+                    Console.WriteLine(e.Message);
                 }
-
-                await Task.Delay(_pollingPeriodMilis, stoppingToken);
             }
         }
+
+        private async Task<bool> PromptCashier(string message, string transactionId)
+        {
+            var promptCashier = await _vpsApi.PromptCashier(new InPromptCashierTO
+            {
+                Request = new PromptCashierRequest
+                {
+                    TransactionId = transactionId,
+                    Message = message,
+                    ButtonTexts = new string[] { "Yes", "No" },
+                    DefaultResult = "No",
+                    TimeoutSeconds = 60
+                }
+            });
+            return promptCashier.Result.Result == "Yes";
+        }
+
+        private async Task<string> GetAlphaNumeric(string message, string transactionId, int minLength, int maxLength)
+        {
+            var alphaNumeric = await _vpsApi.GetAlphaNumeric(new InGetAlphaNumericTO
+            {
+                Request = new RequestGetAlphaNumeric
+                {
+                    TransactionId = transactionId,
+                    Message = message,
+                    MinLength = minLength.ToString(),
+                    MaxLength = maxLength.ToString(),
+                    TimeoutSeconds = 60
+                }
+            });
+            return alphaNumeric.Result.Result;
+        }
+
+        private async Task DisplayConfirmation(string message, string transactionId)
+        {
+            await _vpsApi.DisplayConfirmation(new InDisplayConfirmationTO
+            {
+                Request = new DisplayConfirmationRequest
+                {
+                    TransactionId = transactionId,
+                    Message = message,
+                    TimeoutSeconds = 60
+                }
+            });
+        }
+
+        private async Task CompleteTransaction(string transactionId, bool approved, string approvalCode, float approvedAmount, float approvedCashback, float approvedTip, string referenceNumber, string errorMessage)
+        {
+            await _vpsApi.CompleteTransaction(new InCompleteTransactionTO
+            {
+                Request = new CompleteTransactionRequest
+                {
+                    TransactionId = transactionId,
+                    Approved = approved,
+                    ApprovalCode = approvalCode,
+                    ApprovedAmount = approvedAmount,
+                    ApprovedCashback = approvedCashback,
+                    ApprovedTip = approvedTip
+
+                }
+            });
+        }
+            
     }
 }
+   
