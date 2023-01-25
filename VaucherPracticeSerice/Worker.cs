@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+using Serilog;
 using VaucherPracticeService.Services.VPS;
 using VaucherPracticeService.Services.VPS.Models;
 
@@ -34,92 +34,155 @@ namespace VaucherPracticeSerice
                     {
                         foreach (var transaction in getTransactions.Result)
                         {
-                            var useVoucher = await PromptCashier("Do you want to use vaucher code?", transaction.TransactionId);
-                            if (useVoucher)
+                            try
                             {
-                                var voucherCode = await GetAlphaNumeric("Enter voucher code:", transaction.TransactionId, 2, 10);
-                                if (voucherCode.ToLower() == "c1")
+                                var useVoucher = await PromptCashier("Do you want to use vaucher code?", transaction.TransactionId);
+                                if (useVoucher)
                                 {
-                                    await DisplayConfirmation("With this voucher you got discount of 1$", transaction.TransactionId);
-                                    await CompleteTransaction(transaction.TransactionId, true, "aHello", transaction.Amount, transaction.Cashback, transaction.Tip, transaction.ReferenceNumber, "errorMessage");
+                                    var voucherCode = await GetAlphaNumeric("Enter voucher code:", transaction.TransactionId, 2, 10);
+                                    if (voucherCode.ToLower() == "c1")
+                                    {
+                                        await DisplayConfirmation("With this voucher you got discount of 1$", transaction.TransactionId);
+                                        await CompleteTransaction(transaction.TransactionId, true, "aHello", transaction.Amount, transaction.Cashback, transaction.Tip, transaction.ReferenceNumber, "errorMessage");
+                                    }
+                                    else
+                                    {
+                                        await DisplayConfirmation("Invalid Voucher", transaction.TransactionId);
+                                    }
                                 }
-                                else
-                                {
-                                    await DisplayConfirmation("Invalid Voucher", transaction.TransactionId);
-                                }
+                            }
+                            catch (VpsApiException e)
+                            {
+                                Log.Error(e, "VPS API call failed for transaction {transactionId}", transaction.TransactionId);
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Error(e, "Error processing transaction {transactionId}", transaction.TransactionId);
                             }
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message);
+                    Log.Error(e, "Error getting transactions");
                 }
             }
         }
 
         private async Task<bool> PromptCashier(string message, string transactionId)
         {
-            var promptCashier = await _vpsApi.PromptCashier(new InPromptCashierTO
+            try
             {
-                Request = new PromptCashierRequest
+                var promptCashier = await _vpsApi.PromptCashier(new InPromptCashierTO
                 {
-                    TransactionId = transactionId,
-                    Message = message,
-                    ButtonTexts = new string[] { "Yes", "No" },
-                    DefaultResult = "No",
-                    TimeoutSeconds = 60
-                }
-            });
-            return promptCashier.Result.Result == "Yes";
+                    Request = new PromptCashierRequest
+                    {
+                        TransactionId = transactionId,
+                        Message = message,
+                        ButtonTexts = new string[] { "Yes", "No" },
+                        DefaultResult = "No",
+                        TimeoutSeconds = 60
+                    }
+                });
+                return promptCashier.Result.Result == "Yes";
+            }
+            catch (VpsApiException e)
+            {
+                Log.Error(e, "VPS API call failed for transaction {transactionId}", transactionId);
+                throw;
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Error prompted cashier for transaction {transactionId}", transactionId);
+                throw;
+            }
         }
-
         private async Task<string> GetAlphaNumeric(string message, string transactionId, int minLength, int maxLength)
         {
-            var alphaNumeric = await _vpsApi.GetAlphaNumeric(new InGetAlphaNumericTO
+            try
             {
-                Request = new RequestGetAlphaNumeric
+                var alphaNumeric = await _vpsApi.GetAlphaNumeric(new InGetAlphaNumericTO
                 {
-                    TransactionId = transactionId,
-                    Message = message,
-                    MinLength = minLength.ToString(),
-                    MaxLength = maxLength.ToString(),
-                    TimeoutSeconds = 60
-                }
-            });
-            return alphaNumeric.Result.Result;
+                    Request = new RequestGetAlphaNumeric
+                    {
+                        TransactionId = transactionId,
+                        Message = message,
+                        MinLength = minLength.ToString(),
+                        MaxLength = maxLength.ToString(),
+                        TimeoutSeconds = 60
+                    }
+                });
+                return alphaNumeric.Result.Result;
+            }
+            catch (VpsApiException e)
+            {
+                Log.Error(e, "VPS API call failed for transaction {transactionId}", transactionId);
+                throw;
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Error getting alpha-numeric input for transaction {transactionId}", transactionId);
+                throw;
+            }
         }
 
         private async Task DisplayConfirmation(string message, string transactionId)
         {
-            await _vpsApi.DisplayConfirmation(new InDisplayConfirmationTO
+            try
             {
-                Request = new DisplayConfirmationRequest
+                await _vpsApi.DisplayConfirmation(new InDisplayConfirmationTO
                 {
-                    TransactionId = transactionId,
-                    Message = message,
-                    TimeoutSeconds = 60
-                }
-            });
+                    Request = new DisplayConfirmationRequest
+                    {
+                        TransactionId = transactionId,
+                        Message = message,
+                        TimeoutSeconds = 60
+                    }
+                });
+            }
+            catch (VpsApiException e)
+            {
+                Log.Error(e, "VPS API call failed for transaction {transactionId}", transactionId);
+                throw;
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Error displaying confirmation message for transaction {transactionId}", transactionId);
+                throw;
+            }
         }
 
         private async Task CompleteTransaction(string transactionId, bool approved, string approvalCode, float approvedAmount, float approvedCashback, float approvedTip, string referenceNumber, string errorMessage)
         {
-            await _vpsApi.CompleteTransaction(new InCompleteTransactionTO
+            try
             {
-                Request = new CompleteTransactionRequest
+                await _vpsApi.CompleteTransaction(new InCompleteTransactionTO
                 {
-                    TransactionId = transactionId,
-                    Approved = approved,
-                    ApprovalCode = approvalCode,
-                    ApprovedAmount = approvedAmount,
-                    ApprovedCashback = approvedCashback,
-                    ApprovedTip = approvedTip
-
-                }
-            });
+                    Request = new CompleteTransactionRequest
+                    {
+                        TransactionId = transactionId,
+                        Approved = approved,
+                        ApprovalCode = approvalCode,
+                        ApprovedAmount = approvedAmount,
+                        ApprovedCashback = approvedCashback,
+                        ApprovedTip = approvedTip,
+                        ReferenceNumber = referenceNumber,
+                        ErrorMessage = errorMessage
+                    }
+                });
+            }
+            catch (VpsApiException e)
+            {
+                Log.Error(e, "VPS API call failed for transaction {transactionId}", transactionId);
+                throw;
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Error completing transaction {transactionId}", transactionId);
+                throw;
+            }
         }
-            
+
     }
 }
    
