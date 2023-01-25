@@ -48,7 +48,13 @@ namespace VaucherPracticeSerice
                                     else
                                     {
                                         await DisplayConfirmation("Invalid Voucher", transaction.TransactionId);
+                                        await CompleteTransaction(transaction.TransactionId, false, "aHello", transaction.Amount, transaction.Cashback, transaction.Tip, transaction.ReferenceNumber, "errorMessage");
+
                                     }
+                                }
+                                else
+                                {
+                                    await CompleteTransaction(transaction.TransactionId, true, "aHello", transaction.Amount, transaction.Cashback, transaction.Tip, transaction.ReferenceNumber, "errorMessage");
                                 }
                             }
                             catch (VpsApiException e)
