@@ -51,188 +51,77 @@ namespace VaucherPracticeService.Services.VPS
 
         public async Task<OutGetTransactionsTO> GetTransactions()
         {
-            try
-            {
-                return await BaseRetryPolicy().ExecuteAsync(async () =>
-                {
-                    var urlBuilder = new StringBuilder(_baseUrl).Append("/ExternalAPI/PayAtPos/GetTransactions");
-
-                    using var cts = new CancellationTokenSource();
-                    cts.CancelAfter(_apsRequestTimeout);
-
-                    using HttpResponseMessage response = await _httpClient.GetAsync(urlBuilder.ToString(), cts.Token);
-
-                    if (response.StatusCode != HttpStatusCode.OK)
-                    {
-                        _logger.LogError("GetTransactions returned: " + (int)response.StatusCode + ", " + await response.Content?.ReadAsStringAsync());
-                        return null;
-                    }
-
-                    return await JsonSerializer.DeserializeAsync<OutGetTransactionsTO>(await response.Content.ReadAsStreamAsync());
-                });
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, e.Message);
-                return null;
-            }
+            var urlBuilder = new StringBuilder(_baseUrl).Append("/ExternalAPI/PayAtPos/GetTransactions");
+            return await MakeHttpRequest<OutGetTransactionsTO>(HttpMethod.Get, urlBuilder.ToString(), null);
         }
 
         public async Task<bool> CompleteTransaction(InCompleteTransactionTO model)
         {
-            try
-            {
-                return await BaseRetryPolicy().ExecuteAsync(async () =>
-                {
-                    var urlBuilder = new StringBuilder(_baseUrl).Append("/ExternalAPI/PayAtPos/CompleteTransaction");
-
-                    using var cts = new CancellationTokenSource();
-                    cts.CancelAfter(_apsRequestTimeoutForCompleteTransaction);
-
-                    using var content = new StringContent(JsonSerializer.Serialize(model));
-                    content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-
-                    using HttpResponseMessage response = await _httpClient.PostAsync(urlBuilder.ToString(), content, cts.Token);
-
-                    bool success = response.StatusCode == HttpStatusCode.OK;
-
-                    if (!success)
-                        _logger.LogError("CompleteTransaction returned: " + (int)response.StatusCode + ", " + await response.Content?.ReadAsStringAsync());
-
-                    return success;
-                });
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, e.Message);
-                return false;
-            }
+            var urlBuilder = new StringBuilder(_baseUrl).Append("/ExternalAPI/PayAtPos/CompleteTransaction");
+            return await MakeHttpRequest<bool>(HttpMethod.Post, urlBuilder.ToString(), model);
         }
 
         public async Task<bool> DisplayMessage(InDisplayMessageTO model)
         {
-            try
-            {
-                return await BaseRetryPolicy().ExecuteAsync(async () =>
-                {
-                    var urlBuilder = new StringBuilder(_baseUrl).Append("/ExternalAPI/PayAtPos/DisplayMessage");
-
-                    using var cts = new CancellationTokenSource();
-                    cts.CancelAfter(_apsRequestTimeout);
-
-                    using var content = new StringContent(JsonSerializer.Serialize(model));
-                    content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-
-                    using HttpResponseMessage response = await _httpClient.PostAsync(urlBuilder.ToString(), content, cts.Token);
-
-                    bool success = response.StatusCode == HttpStatusCode.OK;
-
-                    if (!success)
-                        _logger.LogError("DisplayMessage returned: " + (int)response.StatusCode + ", " + await response.Content?.ReadAsStringAsync());
-
-                    return success;
-                });
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, e.Message);
-                return false;
-            }
+            var urlBuilder = new StringBuilder(_baseUrl).Append("/ExternalAPI/PayAtPos/DisplayMessage");
+            return await MakeHttpRequest<bool>(HttpMethod.Post, urlBuilder.ToString(), model);
         }
 
         public async Task<bool> DisplayConfirmation(InDisplayConfirmationTO model)
         {
-            try
-            {
-                return await BaseRetryPolicy().ExecuteAsync(async () =>
-                {
-                    var urlBuilder = new StringBuilder(_baseUrl).Append("/ExternalAPI/PayAtPos/DisplayConfirmation");
-
-                    using var cts = new CancellationTokenSource();
-                    cts.CancelAfter(_apsRequestTimeout);
-
-                    using var content = new StringContent(JsonSerializer.Serialize(model));
-                    content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                    using HttpResponseMessage response = await _httpClient.PostAsync(urlBuilder.ToString(), content, cts.Token);
-
-                    bool success = response.StatusCode == HttpStatusCode.OK;
-
-                    if (!success)
-                        _logger.LogError("DisplayConfirmation returned: " + (int)response.StatusCode + ", " + await response.Content?.ReadAsStringAsync());
-
-                    return success;
-                });
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, e.Message);
-                return false;
-            }
+            var urlBuilder = new StringBuilder(_baseUrl).Append("/ExternalAPI/PayAtPos/DisplayConfirmation");
+            return await MakeHttpRequest<bool>(HttpMethod.Post, urlBuilder.ToString(), model);
         }
 
         public async Task<OutPromptCashierTO> PromptCashier(InPromptCashierTO model)
         {
-            try
-            {
-                return await BaseRetryPolicy().ExecuteAsync(async () =>
-                {
-                    var urlBuilder = new StringBuilder(_baseUrl).Append("/ExternalAPI/PayAtPos/PromptCashier");
-
-                    using var cts = new CancellationTokenSource();
-                    cts.CancelAfter(_apsRequestTimeout);
-
-                    using var content = new StringContent(JsonSerializer.Serialize(model));
-                    content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-
-                    using HttpResponseMessage response = await _httpClient.PostAsync(urlBuilder.ToString(), content, cts.Token);
-
-                    if (response.StatusCode != HttpStatusCode.OK)
-                    {
-                        _logger.LogError("PromptCashier returned: " + (int)response.StatusCode + ", " + await response.Content?.ReadAsStringAsync());
-                        return null;
-                    }
-
-                    return await JsonSerializer.DeserializeAsync<OutPromptCashierTO>(await response.Content.ReadAsStreamAsync());
-                });
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, e.Message);
-                return null;
-            }
+            var urlBuilder = new StringBuilder(_baseUrl).Append("/ExternalAPI/PayAtPos/PromptCashier");
+            return await MakeHttpRequest<OutPromptCashierTO>(HttpMethod.Post, urlBuilder.ToString(), model);
         }
 
         public async Task<OutGetAlphaNumeric> GetAlphaNumeric(InGetAlphaNumericTO model)
+        {
+            var urlBuilder = new StringBuilder(_baseUrl).Append("/ExternalAPI/PayAtPos/GetAlphaNum");
+            return await MakeHttpRequest<OutGetAlphaNumeric>(HttpMethod.Post, urlBuilder.ToString(), model);
+        }
+
+        private async Task<T> MakeHttpRequest<T>(HttpMethod method, string url, object body)
         {
             try
             {
                 return await BaseRetryPolicy().ExecuteAsync(async () =>
                 {
-                    var urlBuilder = new StringBuilder(_baseUrl).Append("/ExternalAPI/PayAtPos/GetAlphaNum");
-
                     using var cts = new CancellationTokenSource();
                     cts.CancelAfter(_apsRequestTimeout);
 
-                    using var content = new StringContent(JsonSerializer.Serialize(model));
-                    content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+                    HttpContent content = null;
+                    if (body != null)
+                    {
+                        content = new StringContent(JsonSerializer.Serialize(body));
+                        content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+                    }
 
-                    using HttpResponseMessage response = await _httpClient.PostAsync(urlBuilder.ToString(), content, cts.Token);
+                    using HttpResponseMessage response = await _httpClient.SendAsync(new HttpRequestMessage(method, url)
+                    {
+                        Content = content
+                    }, cts.Token);
 
                     if (response.StatusCode != HttpStatusCode.OK)
                     {
-                        _logger.LogError("GetAlphaNumeric returned: " + (int)response.StatusCode + ", " + await response.Content?.ReadAsStringAsync());
-                        return null;
+                        _logger.LogError("Request returned: " + (int)response.StatusCode + ", " + await response.Content?.ReadAsStringAsync());
+                        return default(T);
                     }
 
-                    return await JsonSerializer.DeserializeAsync<OutGetAlphaNumeric>(await response.Content.ReadAsStreamAsync());
+                    return await JsonSerializer.DeserializeAsync<T>(await response.Content.ReadAsStreamAsync());
                 });
             }
             catch (Exception e)
             {
                 _logger.LogError(e, e.Message);
-                return null;
+                return default(T);
             }
         }
+
 
         private AsyncRetryPolicy BaseRetryPolicy()
         {
@@ -244,5 +133,7 @@ namespace VaucherPracticeService.Services.VPS
                         _logger.LogError($"Request timeout. Retrying in {sleepDuration}. {attemptNumber} / {_apsRequestRetryCount}. Exception message: {exception?.Message}");
                     });
         }
+
+      
     }
 }
