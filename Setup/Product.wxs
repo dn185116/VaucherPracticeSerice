@@ -1,170 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="*" Name="Setup" Language="1033" Version="1.0.0.0" Manufacturer="NCR" UpgradeCode="a7daeb9f-2590-4514-ab33-1865f9654d33">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+
+	<Product Id="*" Name="VaucherService" Language="1033" Version="0.0.1" Manufacturer="NCR Corporation" UpgradeCode="32f2c585-855b-42db-9a54-af812e265293">
 		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
 		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-		<MediaTemplate />
+		<MediaTemplate EmbedCab="yes" />
 
-		<Feature Id="ProductFeature" Title="Setup" Level="1">
+		<Feature Id="ProductFeature" Title="VaucherService" Level="1">
 			<ComponentGroupRef Id="ProductComponents" />
+			<ComponentGroupRef Id="GeneratedProductComponents" />
 		</Feature>
 	</Product>
 
-	<Fragment>
-		<Directory Id="TARGETDIR" Name="SourceDir">
-			<Directory Id="ProgramFilesFolder">
-				<Directory Id="INSTALLFOLDER" Name="TestingServiceVaucher" />
-			</Directory>
-		</Directory>
-	</Fragment>
+<Fragment>
+	<CustomAction Id="SetTARGETDIR" Property="TARGETDIR" Value="[%LOCALDIR]" Execute="firstSequence" />
 
-	<Fragment>
-		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-			<Component Id="cmp6CABB8216F29ECDE4598FE9C1A4797F6" Guid="{32797B8C-E85B-45F6-8A35-7B2F5CD85970}">
-				<File Id="fil3EFE86C0CCC2215686F6B8C591C308A3" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\appsettings.Development.json" />
+	<Directory Id="TARGETDIR" Name="SourceDir">
+		<Directory Id="INSTALLFOLDER" Name="VaucherService" />
+	</Directory>
+</Fragment>
+
+<Fragment>
+	<ComponentGroup Id="ProductComponents">
+		<ComponentRef Id="VaucherServiceEXE" />
+	</ComponentGroup>
+	<DirectoryRef Id="INSTALLFOLDER" FileSource="..\VaucherPracticeSerice\bin\Release\net6.0\win-x86\publish">
+
+		<Component Id="VaucherServiceEXE" Guid="b17f48a8-501f-4b7d-84c1-d7fc18b76259">
+			<File Id="FileVaucherServiceEXE" Name="VaucherPracticeSerice.exe" KeyPath="yes"/>
+				<ServiceInstall
+					  Id="VaucherService"
+					  Type="ownProcess"
+					  Name="VaucherService"
+					  DisplayName="VaucherService"
+					  Description="Service for interaction between Aloha and Vaucher System"
+					  Start="auto"
+					  Account="LocalSystem"
+					  Interactive="yes"
+					  ErrorControl="normal">
+
+					<util:ServiceConfig
+					  RestartServiceDelayInSeconds="5"
+					  ResetPeriodInDays="0"
+					  FirstFailureActionType="restart"
+					  SecondFailureActionType="restart"
+					  ThirdFailureActionType="restart"/>
+				</ServiceInstall>
+				<ServiceControl Id="VaucherService" Start="install" Stop="both" Remove="uninstall" Name="VaucherService" Wait="yes"/>
 			</Component>
-			<Component Id="cmp55B621D3B9ED4C23AAE43CCFC7CA84F1" Guid="{F5124086-5FFD-4DE4-B8FA-A73BA4BD9073}">
-				<File Id="filF49F32DD54997BCBD28826B396E8C2A2" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\appsettings.json" />
-			</Component>
-			<Component Id="cmp5C35B3CAED3AB51DED0C70930B510066" Guid="{6CEEEE36-0298-4ED4-860B-804D9D60016D}">
-				<File Id="fil0D68A89FAE9A41A10D1E06128B4EECB3" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Configuration.Abstractions.dll" />
-			</Component>
-			<Component Id="cmpB297DA22AAB85C40A4A74B4FCEE211E7" Guid="{F2E7B159-9FF9-4EF1-8D05-FF251A34A08D}">
-				<File Id="fil80019F877D9771742803A8BA2D94230E" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Configuration.Binder.dll" />
-			</Component>
-			<Component Id="cmp5F78BBD9313CAFC7C4AD485DE112285F" Guid="{04B257FE-36E4-44EC-A1D4-7E8E5C91E699}">
-				<File Id="filBEE684464B20496238B310F7E2912064" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Configuration.CommandLine.dll" />
-			</Component>
-			<Component Id="cmpFAA29FF2D198ACC51A8FBB0D5418B9FB" Guid="{C0A9A023-F878-48B4-ACF6-42C1CEE915A1}">
-				<File Id="fil970A07A1F4E4754ECCF581310431489B" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Configuration.dll" />
-			</Component>
-			<Component Id="cmp1AF79BEFC31EC63AB17C19A3E0D20AF6" Guid="{3051FED5-BA40-4475-845C-E0BD992773F4}">
-				<File Id="fil27F6E98DC724EE143F93B2635ADDDF93" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Configuration.EnvironmentVariables.dll" />
-			</Component>
-			<Component Id="cmp2D72717419004E353D7A30E3B172B47D" Guid="{A01E61C3-0B68-4FE7-8E51-6A444CE06C06}">
-				<File Id="fil9D7E9B0D5E686CC6BBC066B97BA10D64" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Configuration.FileExtensions.dll" />
-			</Component>
-			<Component Id="cmp460A257488453C293D293AA9B7141198" Guid="{C651B82F-37ED-4526-9FEF-36D1AA266C16}">
-				<File Id="fil5C0628997B1C8C9DC95F68890492F3FA" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Configuration.Json.dll" />
-			</Component>
-			<Component Id="cmpD7CF2FB3032D3D888452BFBFD7D54FB3" Guid="{1AB08E0D-E67C-47B7-BA16-EF951280FB7D}">
-				<File Id="fil30D676568B96B02A21503D51CAF562FD" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Configuration.UserSecrets.dll" />
-			</Component>
-			<Component Id="cmp3A55DF3B314D255DFBBFC565B24D09E0" Guid="{110C3A71-1C93-4B3E-865D-30008895E15D}">
-				<File Id="fil08108FB4DD042466AF6FE0B12964426D" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
-			</Component>
-			<Component Id="cmp0D96EA111B87A357A1596E85A20E07BC" Guid="{81637DB0-80AE-4777-A48A-B02AB5033458}">
-				<File Id="filA152DC934E2B48380ADBEBBCB98803C2" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.DependencyInjection.dll" />
-			</Component>
-			<Component Id="cmp6996372F59E2686E08ADA35779719A05" Guid="{24869277-4E13-4541-BE94-B1FD88253ACF}">
-				<File Id="fil228E3D52C8B39E075E3DB6CE5A6F27B9" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.DependencyModel.dll" />
-			</Component>
-			<Component Id="cmp6E9412CBD83DBDFF582B5FE05B6BC331" Guid="{225EF494-281F-43A1-BDDA-5A57950336E8}">
-				<File Id="fil0759B9A3004220595F503D5058C68434" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.FileProviders.Abstractions.dll" />
-			</Component>
-			<Component Id="cmp2DC3078E5067AC710452F7A55F587F41" Guid="{F89AB973-E50D-4AD4-914B-1A03CC5EE4C5}">
-				<File Id="fil57492256F3A0906174DCFFC688E2233A" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.FileProviders.Physical.dll" />
-			</Component>
-			<Component Id="cmpA6BBA9A85C8CF71C5EFE583476475BFA" Guid="{87619E14-3264-48D0-AADE-BE9C23EC556E}">
-				<File Id="fil3FAAC0F245EEDF5384B3648EEDDFD95E" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.FileSystemGlobbing.dll" />
-			</Component>
-			<Component Id="cmpC452243ECAD143FE89444FF1D1A8D56C" Guid="{D032B692-DE44-4958-9EAF-C3287B1D8D09}">
-				<File Id="fil50C3EE18A589260880D6E590B73017AE" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Hosting.Abstractions.dll" />
-			</Component>
-			<Component Id="cmpB536053C1B3310115884EF5CE5CFED84" Guid="{A903F042-4E72-4DC0-9DE0-176889B96875}">
-				<File Id="fil186FCB236550A6ECAB245A48F65BC76B" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Hosting.dll" />
-			</Component>
-			<Component Id="cmp4255BFC4F52D073D7368DF50CE673E54" Guid="{3220CDDB-4E78-4E67-80C2-8C48BAE50CD7}">
-				<File Id="fil0104D7D8578B4668576225523DB1C9C6" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Hosting.WindowsServices.dll" />
-			</Component>
-			<Component Id="cmp3013E2889D45EC5195C51C829B4FBBFB" Guid="{9316CF44-CDBB-41E2-AF0E-BA971E59F99D}">
-				<File Id="fil130DABA2239F7A0510E7579CEAECA79E" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Logging.Abstractions.dll" />
-			</Component>
-			<Component Id="cmp8ADBCB967AE853F0E7B910C1557BF037" Guid="{E4CD4AD1-4914-43AD-9294-1DA7A96C4FE1}">
-				<File Id="fil517D93A15B148961CD6406A57CB8FCBD" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Logging.Configuration.dll" />
-			</Component>
-			<Component Id="cmpD0B693EDB8EE17A45D64213C52C8EC1A" Guid="{5CF0474A-2E96-4139-A37A-3789E78AFC6B}">
-				<File Id="filBCDDA9077FC2660D05FE6DC18B9258E7" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Logging.Console.dll" />
-			</Component>
-			<Component Id="cmp78A377FD998E2642851A089B4E4FFE33" Guid="{0C43E396-7273-4F56-8630-4B3531C26864}">
-				<File Id="filDA8C2DB07F72631D0959D358C08961CF" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Logging.Debug.dll" />
-			</Component>
-			<Component Id="cmpD4285A09970BCAA422BEDCBC728F594C" Guid="{551D6D28-E490-4824-B337-7B5B1E2F9F0F}">
-				<File Id="fil7F60C5EF06367479303D9D740480FE7C" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Logging.dll" />
-			</Component>
-			<Component Id="cmpED777FED8E93A7C58A46DAAD37E064F0" Guid="{6AE5A988-9E10-4E32-A271-4784BB812727}">
-				<File Id="fil19D2BDFA8055763ECCFE02D3884E6BBE" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Logging.EventLog.dll" />
-			</Component>
-			<Component Id="cmpADA951A278FAE459E8302C356A370611" Guid="{EE49C5C8-0E97-4547-A43B-44CD861C84AD}">
-				<File Id="fil6D6A83EC81F454D448ED866104232548" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Logging.EventSource.dll" />
-			</Component>
-			<Component Id="cmp2E520B39A4D49C9E9717C57B05C0FE0E" Guid="{59EB62FD-8169-4F3C-AC3F-6D40BC002070}">
-				<File Id="fil25E876CE1B63EB7A8D9966EBB44423C2" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Options.ConfigurationExtensions.dll" />
-			</Component>
-			<Component Id="cmp41563DA659007E6FAFA47449CBBB9F81" Guid="{D6E3C36E-3558-4DF7-8383-9FE3BDBED451}">
-				<File Id="filAF9FA38FAFCDBA51F1DD3D68CA9A7510" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Options.dll" />
-			</Component>
-			<Component Id="cmp3F0CFE4857281F0880D96F35A0768A38" Guid="{4D99D4E4-ECEB-4B0D-9390-DE3FC0288176}">
-				<File Id="fil80FDAED837E1309C520672B226073BB4" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Microsoft.Extensions.Primitives.dll" />
-			</Component>
-			<Component Id="cmp6D653A602B60FD85DFE56AABBD33BAF2" Guid="{B5E0749A-B736-443F-8F07-B4F84FC7F28E}">
-				<File Id="filC9FFCED4758839F7AF83175DC46BEBA2" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Polly.dll" />
-			</Component>
-			<Component Id="cmpFCC282E3156665526C1E5019F668E93E" Guid="{169EEB4A-9866-44B1-AE53-B07097360DDC}">
-				<File Id="fil9215D0EA2E6E6E45B31A546887E35207" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Serilog.dll" />
-			</Component>
-			<Component Id="cmp83C655DACBEDA0CC6A5D6C178586953F" Guid="{9E196FF9-71C0-43FD-81F4-F1E8966D4C5B}">
-				<File Id="filAD426D895A5FC95CDA56038AE817B2BF" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Serilog.Extensions.Hosting.dll" />
-			</Component>
-			<Component Id="cmpA5FDB29F03727A0975FBFECD9A34037E" Guid="{7D68C93E-9074-4228-BEDF-F6856F016BA8}">
-				<File Id="fil8543DA9E0CE22EB68187E8FB75556F77" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Serilog.Extensions.Logging.dll" />
-			</Component>
-			<Component Id="cmpB9E0A329AE242DF33BEB558AF99453F3" Guid="{B5D41C39-02D7-4D3B-9B3F-49AA06E0B0BE}">
-				<File Id="filFCC98EB6FE0575C56EE3B6A87CAD531B" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Serilog.Settings.Configuration.dll" />
-			</Component>
-			<Component Id="cmpE727DDD13FB33AA64DCCE03DE2C2D164" Guid="{82F3A7D9-0452-4CE4-BF83-291BF21FAC7B}">
-				<File Id="fil17B73A6F0207AA5DF65D4D612D5B1D6E" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Serilog.Sinks.Console.dll" />
-			</Component>
-			<Component Id="cmp61CCB78E91ACB13FD72C36A4982DD652" Guid="{09E7C7C7-AF41-4AFB-97FC-5F130CD6D982}">
-				<File Id="filBD061FF8E2C0BC7162F9280B38E0C9AB" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\Serilog.Sinks.File.dll" />
-			</Component>
-			<Component Id="cmpE45BA299C2C2238377E3B9AEAC9DD6D8" Guid="{D1E5179E-B259-4BD9-A9D2-E3815FAB2BCC}">
-				<File Id="fil1AA26F70348B8DA8638A2FF9E6AFE4AB" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\System.Diagnostics.EventLog.dll" />
-			</Component>
-			<Component Id="cmp7444A8BC585EE8298E6A1F07DE9DC058" Guid="{5F2A3919-6797-49A9-977A-01A5DB3A1A69}">
-				<File Id="fil918CB06EA7D8ACD791A7DBC1D5D3FAE8" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\System.Diagnostics.EventLog.Messages.dll" />
-			</Component>
-			<Component Id="cmp2DCE2E7135F0245CB1BD17CDAB1557FE" Guid="{BB8C9445-574D-41FC-BB5F-AE09C39D73C0}">
-				<File Id="fil06F8BF5A32386333B43AAD02649A8D16" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\System.ServiceProcess.ServiceController.dll" />
-			</Component>
-			<Component Id="cmp2CB95C92F5C897711B61A1FC474F977C" Guid="{CF1D5474-0C0A-4AFA-BD57-49E2109D57D0}">
-				<File Id="filA7999A693ADA1BF68E19CE044D778000" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\VaucherPracticeSerice.deps.json" />
-			</Component>
-			<Component Id="cmpD4845D930B2349D6C29DD2DA0E45FA58" Guid="{45C91540-DCDB-4FB2-AB85-17E9CE3C8944}">
-				<File Id="fil8A61DA08C777940C47F2CB7B9DE5A230" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\VaucherPracticeSerice.dll" />
-			</Component>
-			<Component Id="cmpAD4FC7A01725113EC923F38543F4BBBC" Guid="{B063EC5C-BDF5-4A07-9E45-C0723DC115B0}">
-				<File Id="fil041B64168E94FB82EC3624ED3E92E1AE" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\VaucherPracticeSerice.exe" />
-			</Component>
-			<Component Id="cmpAB565E8192C6FF16078DF83B7DBF3023" Guid="{CF2F3F34-1EE0-4C73-8FA6-4BD1D351CA0B}">
-				<File Id="fil2AEB999F0BFCDC226CC1507BE2726263" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\VaucherPracticeSerice.pdb" />
-			</Component>
-			<Component Id="cmp3F8AE4B53B6C022415C57E57D5F4D1DD" Guid="{8FEBD8BC-171D-4CF7-A8D3-9FF048997BA9}">
-				<File Id="fil3634D2F153AB1B99634F87763AA77A3F" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\VaucherPracticeSerice.runtimeconfig.json" />
-			</Component>
-			<Component Id="cmp3D7D5170C29E1574101CE9F268D0C0C8" Guid="{0D159F34-588C-4593-999B-1F31A4E0BD4F}">
-				<File Id="fil4C94561DEAFD2FADD8CC007E9345FCBF" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\VaucherPracticeService.Services.dll" />
-			</Component>
-			<Component Id="cmp46D928010737DE06D32F1176E059AFC1" Guid="{7E57902A-DFED-4AE1-ABE0-7C40114A87E3}">
-				<File Id="filCAD1C91F9E8FC066085FB49D9950F90E" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\VaucherPracticeService.Services.pdb" />
-			</Component>
-			<Component Id="cmp6B66F302EB22A3A7EE49D16404EAFF98" Guid="{701AE42E-3903-4DA5-8B61-431577104D29}">
-				<File Id="filE0334490A736FFB8095BC87415D9A68F" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\VaucherPracticeService.SharedTool.dll" />
-			</Component>
-			<Component Id="cmp8FD245527A081A1FA28D4D36475FA22C" Guid="{64DADE56-E63A-4126-8C6E-09BE81198939}">
-				<File Id="filF3710560D2C9D8912CC5F806885452E4" KeyPath="yes" Source="..\VaucherPracticeSerice\bin\Release\net6.0\publish\win-x64\VaucherPracticeService.SharedTool.pdb" />
-			</Component>
-		</ComponentGroup>
+
+		</DirectoryRef>
+
 	</Fragment>
 </Wix>
