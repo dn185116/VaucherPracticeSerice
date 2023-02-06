@@ -1,11 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
-	<Product Id="*" Name="VaucherService" Language="1033" Version="0.0.1" Manufacturer="NCR Corporation" UpgradeCode="32f2c585-855b-42db-9a54-af812e265293">
+	<Product Id="*" Name="VaucherService" Language="1033" Version="0.0.2" Manufacturer="NCR Corporation" UpgradeCode="32f2c585-855b-42db-9a54-af812e265293">
 		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
 		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 		<MediaTemplate EmbedCab="yes" />
+
+		 <!-- <UIRef Id="WixUI_Minimal" /> -->
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <UI>
+      <UIRef Id="WixUI_InstallDir" />
+      <Publish Dialog="WelcomeDlg"
+            Control="Next"
+            Event="NewDialog"
+            Value="InstallDirDlg"
+            Order="2">1</Publish>
+      <Publish Dialog="InstallDirDlg"
+            Control="Back"
+            Event="NewDialog"
+            Value="WelcomeDlg"
+            Order="2">1</Publish>
+    </UI>
+
+    <!-- Default confing values -->
+		<Property Id="APSBASEURL">http://192.168.247.133:8800</Property>
+
+		<InstallUISequence>
+			<Custom Action="SetTARGETDIR" Before="LaunchConditions">TARGETDIR=""</Custom>
+		</InstallUISequence>
+
+		<InstallExecuteSequence>
+			<Custom Action="SetTARGETDIR" Before="LaunchConditions">TARGETDIR=""</Custom>
+
+			<Custom Action="RunPowerShell" After="InstallFiles">NOT Installed OR REINSTALL</Custom>
+		</InstallExecuteSequence>
 
 		<Feature Id="ProductFeature" Title="VaucherService" Level="1">
 			<ComponentGroupRef Id="ProductComponents" />
@@ -13,22 +42,24 @@
 		</Feature>
 	</Product>
 
-<Fragment>
-	<CustomAction Id="SetTARGETDIR" Property="TARGETDIR" Value="[%LOCALDIR]" Execute="firstSequence" />
+	<Fragment>
+		<CustomAction Id="SetTARGETDIR" Property="TARGETDIR" Value="[%LOCALDIR]" Execute="firstSequence" />
 
-	<Directory Id="TARGETDIR" Name="SourceDir">
-		<Directory Id="INSTALLFOLDER" Name="VaucherService" />
-	</Directory>
-</Fragment>
+		<CustomAction Id="RunPowerShell" Directory="INSTALLFOLDER" Execute="commit" Impersonate="no" ExeCommand="powershell.exe &quot;(Get-Content appsettings.Production.json) -replace 'ApsBaseUrlValue', '[APSBASEURL]' | Set-Content appsettings.Production.json&quot; ; &quot;Restart-Service VaucherService -Force&quot;" Return="check" />
+    
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="INSTALLFOLDER" Name="VaucherService" />
+		</Directory>
+	</Fragment>
 
-<Fragment>
-	<ComponentGroup Id="ProductComponents">
-		<ComponentRef Id="VaucherServiceEXE" />
-	</ComponentGroup>
-	<DirectoryRef Id="INSTALLFOLDER" FileSource="..\VaucherPracticeSerice\bin\Release\net6.0\win-x86\publish">
+	<Fragment>
+		<ComponentGroup Id="ProductComponents">
+			<ComponentRef Id="VaucherServiceEXE" />
+		</ComponentGroup>
+		<DirectoryRef Id="INSTALLFOLDER" FileSource="..\VaucherPracticeSerice\bin\Release\net6.0\win-x86\publish">
 
-		<Component Id="VaucherServiceEXE" Guid="b17f48a8-501f-4b7d-84c1-d7fc18b76259">
-			<File Id="FileVaucherServiceEXE" Name="VaucherPracticeSerice.exe" KeyPath="yes"/>
+			<Component Id="VaucherServiceEXE" Guid="b17f48a8-501f-4b7d-84c1-d7fc18b76259">
+				<File Id="FileVaucherServiceEXE" Name="VaucherPracticeSerice.exe" KeyPath="yes"/>
 				<ServiceInstall
 					  Id="VaucherService"
 					  Type="ownProcess"
